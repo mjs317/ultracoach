@@ -1,0 +1,343 @@
+// Endurance AI Coach - data model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth.js ----------
+
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  athleteProfile  AthleteProfile?
+  events          Event[]
+  plans           Plan[]
+  settings        UserSettings?
+  strava          StravaAccount?
+  activities      Activity[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Domain ----------
+
+enum Sport {
+  RUN
+  BIKE
+  SWIM
+  TRI
+  DUATHLON
+  ULTRA
+  STRENGTH
+  MOBILITY
+  CUSTOM
+}
+
+enum EventPriority {
+  A
+  B
+  C
+}
+
+enum WorkoutType {
+  ENDURANCE
+  TEMPO
+  THRESHOLD
+  VO2
+  SPEED
+  RECOVERY
+  LONG
+  BRICK
+  RACE
+  STRENGTH
+  MOBILITY
+  REST
+}
+
+enum TrainingPhase {
+  BASE
+  BUILD
+  PEAK
+  TAPER
+  RECOVERY
+  RACE_WEEK
+}
+
+enum PlanStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AdaptMode {
+  MANUAL
+  FEEDBACK
+  ACTUALS
+}
+
+model AthleteProfile {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dob              DateTime?
+  weightKg         Float?
+  heightCm         Float?
+  experienceLevel  String? // beginner | intermediate | advanced | elite
+
+  // Thresholds (nullable so users can fill what they know)
+  ftpWatts         Int?
+  lthrBpm          Int?
+  maxHrBpm         Int?
+  restingHrBpm     Int?
+  thresholdRunPaceSecPerKm  Float?
+  thresholdSwimCssSecPer100m Float?
+
+  // Weekly hours pattern (JSON: { mon: 1.0, tue: 1.5, ... })
+  weeklyHoursPattern Json?
+  // Preferred sport split (JSON: { run: 0.4, bike: 0.4, swim: 0.2 })
+  sportSplit       Json?
+  // Non-training off-days ["sun"] etc
+  offDays          String[] @default([])
+
+  // Free-text constraints / injuries / notes the coach should respect
+  constraints      String? @db.Text
+
+  // Equipment
+  hasPowerMeter    Boolean @default(false)
+  hasSmartTrainer  Boolean @default(false)
+  hasHeartRate     Boolean @default(true)
+  hasGps           Boolean @default(true)
+  poolAccess       Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserSettings {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adaptMode  AdaptMode @default(MANUAL)
+  unitSystem String    @default("imperial") // imperial | metric
+  aiProvider String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Event {
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name             String
+  date             DateTime
+  sport            Sport
+  priority         EventPriority @default(B)
+
+  // One of distanceMeters / durationSeconds may be set (goal time or distance)
+  distanceMeters   Int?
+  durationSeconds  Int?
+  elevationGainM   Int?
+  terrain          String?
+  location         String?
+  notes            String?       @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model Plan {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  status      PlanStatus @default(DRAFT)
+  version     Int        @default(1)
+
+  startDate   DateTime
+  endDate     DateTime
+
+  // Snapshot of inputs used to generate this plan (event IDs, profile, hours, etc.)
+  inputsSnapshot Json?
+  // Science-review summary produced by the reviewer agent
+  reviewSummary  String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blocks    TrainingBlock[]
+  workouts  Workout[]
+  citations Citation[]
+
+  @@index([userId, startDate])
+}
+
+model TrainingBlock {
+  id        String        @id @default(cuid())
+  planId    String
+  plan      Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  name      String
+  phase     TrainingPhase
+  startDate DateTime
+  endDate   DateTime
+  focus     String?       @db.Text
+
+  orderIndex Int @default(0)
+
+  @@index([planId, startDate])
+}
+
+model Workout {
+  id              String        @id @default(cuid())
+  planId          String
+  plan            Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  date            DateTime
+  sport           Sport
+  type            WorkoutType
+  title           String
+  description     String?       @db.Text
+
+  durationSeconds Int           @default(0)
+  distanceMeters  Int?
+  estimatedTss    Int?
+  estimatedLoad   Int?
+
+  // Structured steps: see WorkoutStepSchema in lib/ai/schemas.ts
+  steps           Json          @default("[]")
+
+  // User edits layered on top of AI output
+  userEdits       Json?
+  completed       Boolean       @default(false)
+
+  feedback        WorkoutFeedback?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([planId, date])
+}
+
+model WorkoutFeedback {
+  id                String   @id @default(cuid())
+  workoutId         String   @unique
+  workout           Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  completed         Boolean
+  rpe               Int?     // 1-10
+  actualDurationSec Int?
+  sorenessLevel     Int?     // 1-10
+  sleepHours        Float?
+  stress            Int?     // 1-10
+  notes             String?  @db.Text
+
+  createdAt DateTime @default(now())
+}
+
+model StravaAccount {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  athleteId    String
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum ActivitySource {
+  STRAVA
+  UPLOAD
+  MANUAL
+}
+
+model Activity {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  externalId      String?
+  source          ActivitySource  @default(STRAVA)
+  sport           Sport
+  startTime       DateTime
+  durationSeconds Int
+  distanceMeters  Int?
+  elevationGainM  Int?
+  averageHr       Int?
+  averagePower    Int?
+  averagePaceSec  Int?
+  tss             Int?
+  name            String?
+  notes           String?         @db.Text
+  linkedWorkoutId String?
+  createdAt       DateTime        @default(now())
+
+  @@unique([userId, source, externalId])
+  @@index([userId, startTime])
+}
+
+model Citation {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  url       String
+  title     String
+  snippet   String?  @db.Text
+  topic     String?
+  createdAt DateTime @default(now())
+
+  @@index([planId])
+}

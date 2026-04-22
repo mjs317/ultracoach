@@ -1,0 +1,28 @@
+# deps
+node_modules
+.pnp
+.pnp.js
+.pnpm-store
+
+# next
+.next
+out
+next-env.d.ts
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+# env
+.env
+.env.local
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# misc
+.DS_Store
+*.log
+.vercel
+coverage
