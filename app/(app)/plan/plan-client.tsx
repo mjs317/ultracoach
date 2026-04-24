@@ -117,6 +117,7 @@ export function PlanClient({ plan }: { plan: PlanData | null }) {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      let sawSaved = false;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -126,14 +127,25 @@ export function PlanClient({ plan }: { plan: PlanData | null }) {
         for (const chunk of parts) {
           const line = chunk.trim();
           if (!line.startsWith("data:")) continue;
+          let data: { stage?: string; message?: string; [k: string]: unknown } | null = null;
           try {
-            const data = JSON.parse(line.slice(5).trim());
-            if (data.stage === "error") throw new Error(data.message);
-            setProgress((p) => [...p, formatStage(data)]);
+            data = JSON.parse(line.slice(5).trim());
           } catch {
-            // ignore bad lines
+            // Ignore malformed SSE payloads.
+            continue;
           }
+          if (!data || typeof data.stage !== "string") continue;
+          if (data.stage === "error") {
+            throw new Error(data.message || "Generation failed");
+          }
+          if (data.stage === "saved") {
+            sawSaved = true;
+          }
+          setProgress((p) => [...p, formatStage(data as { stage: string; [k: string]: unknown })]);
         }
+      }
+      if (!sawSaved) {
+        throw new Error("Plan generation did not complete. Please try again.");
       }
       toast.success("Plan generated");
       setTimeout(() => {

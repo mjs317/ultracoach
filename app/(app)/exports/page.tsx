@@ -72,11 +72,18 @@ export default async function ExportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
-                <a href={`/api/export/bundle?planId=${plan.id}`} download>
-                  <FileDown className="mr-2 h-4 w-4" /> Download full bundle
-                </a>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild>
+                  <a href={`/api/export/bundle?planId=${plan.id}`} download>
+                    <FileDown className="mr-2 h-4 w-4" /> Download full bundle
+                  </a>
+                </Button>
+                <Button asChild variant="outline">
+                  <a href={`/api/export/fit?planId=${plan.id}`} download>
+                    <FileDown className="mr-2 h-4 w-4" /> FIT files (TrainingPeaks)
+                  </a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

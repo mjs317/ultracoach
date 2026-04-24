@@ -19,10 +19,10 @@ import {
 type Row = { id: string; date: string; title: string; sport: string; type: string };
 
 const FORMATS = [
+  { value: "fit", label: ".fit (TrainingPeaks / Garmin)" },
   { value: "zwo", label: ".zwo (Zwift / TP)" },
   { value: "erg", label: ".erg" },
   { value: "mrc", label: ".mrc" },
-  { value: "fit", label: ".fit" },
   { value: "pdf", label: ".pdf" },
   { value: "ics", label: ".ics" },
 ];
@@ -31,7 +31,7 @@ export function ExportCenter({ planId, workouts }: { planId: string; workouts: R
   const [from, setFrom] = React.useState<string>("");
   const [to, setTo] = React.useState<string>("");
   const [sport, setSport] = React.useState<string>("all");
-  const [format, setFormat] = React.useState("zwo");
+  const [format, setFormat] = React.useState("fit");
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
 
   const filtered = workouts.filter((w) => {
