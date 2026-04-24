@@ -5,10 +5,12 @@ import { prisma } from "@/lib/db";
 /**
  * MVP user model: every browser gets a cookie-backed anonymous user.
  *
- * We keep the existing Prisma `User` table and just stamp the user a
- * placeholder email derived from the cookie. When auth is re-enabled
- * later, a real sign-up can claim this user by updating the email and
- * setting passwordHash.
+ * The cookie itself is minted by `middleware.ts` (Next.js 15 does not
+ * permit `cookies().set()` from a Server Component during render). Here
+ * we just read whatever cookie the middleware provisioned and upsert a
+ * matching `User` row in the database. When auth is re-enabled later,
+ * a real sign-up can claim the user by updating the email and setting
+ * passwordHash.
  */
 
 const COOKIE = "ultracoach_uid";
@@ -20,34 +22,41 @@ export type CurrentUser = {
   name: string | null;
 };
 
+async function upsertGuest(id: string): Promise<CurrentUser> {
+  return prisma.user.upsert({
+    where: { id },
+    update: {},
+    create: { id, email: `guest+${id}@ultracoach.local` },
+    select: { id: true, email: true, name: true },
+  });
+}
+
 export async function getCurrentUser(): Promise<CurrentUser> {
   const cookieStore = await cookies();
   const existing = cookieStore.get(COOKIE)?.value;
 
   if (existing) {
-    const user = await prisma.user.findUnique({
-      where: { id: existing },
-      select: { id: true, email: true, name: true },
-    });
-    if (user) return user;
+    return upsertGuest(existing);
   }
 
-  // Either no cookie, or the user it pointed at was deleted. Make a fresh one.
+  // Fallback: we're executing outside of the middleware-covered paths
+  // (e.g. a Server Action triggered before any page render). Mint a
+  // cookie inline - legal here because Server Actions/Route Handlers
+  // can write cookies.
   const id = randomUUID();
-  const email = `guest+${id}@ultracoach.local`;
-  const user = await prisma.user.create({
-    data: { id, email },
-    select: { id: true, email: true, name: true },
-  });
-
-  cookieStore.set(COOKIE, user.id, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-  });
-
+  const user = await upsertGuest(id);
+  try {
+    cookieStore.set(COOKIE, id, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: COOKIE_MAX_AGE,
+    });
+  } catch {
+    // Calling context is a Server Component (illegal to mutate
+    // cookies). Middleware will set the cookie on the next request.
+  }
   return user;
 }
 
