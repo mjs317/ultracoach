@@ -32,20 +32,35 @@ plan that exports as TrainingPeaks-compatible workout files, PDF, or a subscriba
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript · Tailwind + shadcn/ui · Prisma + Postgres · Auth.js (email
-magic-link via Resend-compatible SMTP) · Vercel AI SDK · Tavily/Exa search · Strava OAuth.
+Next.js 15 (App Router) · TypeScript · Tailwind + shadcn/ui · Prisma + Postgres · Auth.js v5
+(email + password, plus optional magic-link via any SMTP) · Vercel AI SDK · Tavily/Exa search ·
+Strava OAuth.
+
+## MVP mode (current)
+
+The app currently runs in **MVP mode**: no sign-in flow. Every browser is given a cookie-backed
+"guest user" record on first visit, so you can go straight from the landing page to creating a
+plan. The full Auth.js setup (email + password, magic link, JWT sessions) is preserved in the
+code under `auth.config.ts` and `lib/current-user.ts`, ready to be re-enabled later. Strava OAuth,
+activity uploads, plan history, and per-workout feedback are all still in the codebase but not
+linked from the navigation in MVP mode.
+
+The MVP nav exposes: Dashboard, Events, Plan, Exports, Profile.
 
 ## Getting started
 
 ```bash
 cp .env.example .env.local
-# fill in DATABASE_URL, AUTH_SECRET, EMAIL_* (Resend SMTP works great),
-# ANTHROPIC_API_KEY or OPENAI_API_KEY, TAVILY_API_KEY (recommended).
+# Required: DATABASE_URL, plus ANTHROPIC_API_KEY or OPENAI_API_KEY.
+# Recommended: TAVILY_API_KEY (or EXA_API_KEY) for the science reviewer.
 
 pnpm install
 pnpm prisma db push          # create tables in your Postgres
-pnpm dev                     # start http://localhost:3000
+pnpm dev                     # http://localhost:3000
 ```
+
+On Vercel, `pnpm build` runs `prisma db push` automatically so the schema stays in sync on every
+deploy (safe for additive changes).
 
 Optional:
 
@@ -56,7 +71,6 @@ Optional:
 ## Key routes
 
 - `/` landing page.
-- `/auth/signin` magic-link sign-in.
 - `/dashboard` season overview + next A event.
 - `/events` CRUD events.
 - `/profile` athlete profile + Strava + activity upload.
