@@ -116,7 +116,7 @@ export async function generatePlan(
           sport: w.sport as Sport,
           type: w.type as WorkoutType,
           title: w.title,
-          description: w.description,
+          description: w.description ?? null,
           durationSeconds: w.durationSeconds,
           distanceMeters: w.distanceMeters ?? null,
           estimatedTss: w.estimatedTss ?? null,

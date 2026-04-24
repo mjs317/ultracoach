@@ -85,10 +85,10 @@ export const WorkoutSchema = z.object({
   sport: SportSchema,
   type: WorkoutTypeSchema,
   title: z.string(),
-  description: z.string(),
+  description: z.string().nullable().optional(),
   durationSeconds: z.number().int().nonnegative(),
-  distanceMeters: z.number().int().nonnegative().optional(),
-  estimatedTss: z.number().int().optional(),
+  distanceMeters: z.number().int().nonnegative().nullable().optional(),
+  estimatedTss: z.number().int().nullable().optional(),
   steps: z.array(StepSchema),
 });
 
@@ -99,7 +99,7 @@ export const BlockSchema = z.object({
   phase: TrainingPhaseSchema,
   startDate: z.string(),
   endDate: z.string(),
-  focus: z.string(),
+  focus: z.string().nullable().optional(),
 });
 
 export const ArchitectOutputSchema = z.object({
@@ -145,8 +145,8 @@ export const ReviewerOutputSchema = z.object({
       z.object({
         url: z.string(),
         title: z.string(),
-        snippet: z.string(),
-        topic: z.string(),
+        snippet: z.string().nullable().optional(),
+        topic: z.string().nullable().optional(),
       })
     )
     .default([]),
