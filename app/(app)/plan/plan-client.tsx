@@ -176,9 +176,11 @@ export function PlanClient({ plan }: { plan: PlanData | null }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowCitations((s) => !s)}>
-              <BookOpen className="mr-2 h-4 w-4" /> Citations ({plan.citations.length})
-            </Button>
+            {plan.citations.length > 0 ? (
+              <Button variant="outline" size="sm" onClick={() => setShowCitations((s) => !s)}>
+                <BookOpen className="mr-2 h-4 w-4" /> Citations ({plan.citations.length})
+              </Button>
+            ) : null}
             <Button asChild variant="outline" size="sm">
               <Link href="/plan/history">History</Link>
             </Button>
@@ -226,21 +228,33 @@ export function PlanClient({ plan }: { plan: PlanData | null }) {
               {plan.citations.length === 0 ? (
                 <div className="text-sm text-muted-foreground">No citations recorded.</div>
               ) : (
-                plan.citations.map((c) => (
-                  <div key={c.id} className="text-sm">
-                    <Link
-                      href={c.url}
-                      target="_blank"
-                      className="font-medium underline underline-offset-2"
-                    >
-                      {c.title}
-                    </Link>
-                    {c.topic ? <span className="ml-2 text-xs text-muted-foreground">({c.topic})</span> : null}
-                    {c.snippet ? (
-                      <div className="mt-1 text-xs text-muted-foreground">{c.snippet}</div>
-                    ) : null}
-                  </div>
-                ))
+                plan.citations.map((c) => {
+                  const isUrl = /^https?:\/\//i.test(c.url);
+                  return (
+                    <div key={c.id} className="text-sm">
+                      {isUrl ? (
+                        <Link
+                          href={c.url}
+                          target="_blank"
+                          className="font-medium underline underline-offset-2"
+                        >
+                          {c.title}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{c.title}</span>
+                      )}
+                      {!isUrl && c.url ? (
+                        <span className="ml-2 text-xs text-muted-foreground">{c.url}</span>
+                      ) : null}
+                      {c.topic ? (
+                        <span className="ml-2 text-xs text-muted-foreground">({c.topic})</span>
+                      ) : null}
+                      {c.snippet ? (
+                        <div className="mt-1 text-xs text-muted-foreground">{c.snippet}</div>
+                      ) : null}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>

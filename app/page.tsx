@@ -65,7 +65,7 @@ export default function LandingPage() {
           <Feature
             icon={<Sparkles className="h-5 w-5" />}
             title="Science-reviewed"
-            copy="Every plan is reviewed with live web-search citations on intensity, load, recovery, and taper."
+            copy="Every plan is audited for intensity distribution, ramp rate, recovery weeks, and taper before it lands on your calendar."
           />
           <Feature
             icon={<FileDown className="h-5 w-5" />}
@@ -100,7 +100,7 @@ export default function LandingPage() {
             n={3}
             icon={<BookOpenCheck className="h-5 w-5" />}
             title="Generate a science-reviewed plan"
-            copy="A four-agent AI pipeline (architect, workout generator, live-web science reviewer, revisor) periodizes your season, cites its sources, and flags risks."
+            copy="A four-agent AI pipeline (architect, workout generator, science reviewer, revisor) periodizes your season, audits the plan against established training principles, and revises before delivery."
           />
           <Step
             n={4}

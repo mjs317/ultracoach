@@ -2,8 +2,8 @@
 
 An AI endurance coach for runners, cyclists, triathletes, and ultra-endurance athletes. Add every
 event on your season calendar, scale training to your available hours, and let a multi-agent AI
-pipeline periodize, generate, review (with live web-search citations), and revise a full training
-plan that exports as TrainingPeaks-compatible workout files, PDF, or a subscribable iCal feed.
+pipeline periodize, generate, review, and revise a full training plan that exports as
+TrainingPeaks-compatible workout files, PDF, or a subscribable iCal feed.
 
 ## Features
 
@@ -12,8 +12,9 @@ plan that exports as TrainingPeaks-compatible workout files, PDF, or a subscriba
 - **Multi-agent AI pipeline** (per plan generation):
   1. Plan Architect - periodization outline (base/build/peak/taper/recovery).
   2. Workout Generator - structured daily workouts with intervals, targets, and durations.
-  3. Science Reviewer - live web search (Tavily/Exa) against current training literature, with
-     citations stored in the DB and shown in the UI.
+  3. Science Reviewer - audits intensity distribution, ramp rate, taper structure, and recovery
+     cadence against established endurance training principles and flags issues with suggested
+     fixes.
   4. Revisor - applies reviewer feedback to the plan.
 - **Provider-agnostic LLM** layer (Anthropic Claude or OpenAI GPT) via the Vercel AI SDK.
 - **Structured workout exports** a single click away:
@@ -33,8 +34,7 @@ plan that exports as TrainingPeaks-compatible workout files, PDF, or a subscriba
 ## Stack
 
 Next.js 15 (App Router) · TypeScript · Tailwind + shadcn/ui · Prisma + Postgres · Auth.js v5
-(email + password, plus optional magic-link via any SMTP) · Vercel AI SDK · Tavily/Exa search ·
-Strava OAuth.
+(email + password, plus optional magic-link via any SMTP) · Vercel AI SDK · Strava OAuth.
 
 ## MVP mode (current)
 
@@ -52,7 +52,6 @@ The MVP nav exposes: Dashboard, Events, Plan, Exports, Profile.
 ```bash
 cp .env.example .env.local
 # Required: DATABASE_URL, plus ANTHROPIC_API_KEY or OPENAI_API_KEY.
-# Recommended: TAVILY_API_KEY (or EXA_API_KEY) for the science reviewer.
 
 pnpm install
 pnpm prisma db push          # create tables in your Postgres
