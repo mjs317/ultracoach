@@ -5,7 +5,7 @@ import type { Activity, AthleteProfile, Workout, WorkoutFeedback } from "@prisma
 import type { z } from "zod";
 
 export type AdapterInput = {
-  profile: AthleteProfile;
+  profile: AthleteProfile | null;
   existing: (Workout & { feedback: WorkoutFeedback | null })[];
   actuals?: Activity[];
   fromDate: Date;
@@ -52,9 +52,13 @@ Return JSON strictly matching the schema with the full list of FUTURE workouts (
     .join("\n");
 
   const prompt = `Athlete profile summary:
-- Experience: ${input.profile.experienceLevel}
+${
+  input.profile
+    ? `- Experience: ${input.profile.experienceLevel ?? "unspecified"}
 - FTP: ${input.profile.ftpWatts ?? "n/a"}
-- Constraints: ${input.profile.constraints ?? "none"}
+- Constraints: ${input.profile.constraints ?? "none"}`
+    : "- No profile on file yet; treat as intermediate multi-sport athlete with unknown thresholds."
+}
 
 Recent completed workouts with feedback:
 ${feedbackSummary || "(no feedback yet)"}

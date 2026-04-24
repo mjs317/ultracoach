@@ -43,11 +43,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {needsProfile ? (
         <div className="container py-3">
           <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-            Finish your{" "}
+            Tip: fill in your{" "}
             <Link className="font-semibold underline" href="/profile">
               athlete profile
             </Link>{" "}
-            to unlock plan generation.
+            (FTP, LTHR, weekly hours) so the coach can refine the plan to your
+            fitness. It&apos;s optional — you can generate a plan without it.
           </div>
         </div>
       ) : null}

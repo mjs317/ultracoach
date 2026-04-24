@@ -21,7 +21,6 @@ export async function POST(req: Request) {
   const profile = await prisma.athleteProfile.findUnique({
     where: { userId: session.user.id },
   });
-  if (!profile) return new Response("Profile missing", { status: 400 });
 
   const plan = await prisma.plan.findFirst({
     where: { userId: session.user.id, status: { in: ["DRAFT", "ACTIVE"] } },

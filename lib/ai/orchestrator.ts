@@ -25,7 +25,6 @@ export async function generatePlan(
   const onP = opts.onProgress ?? (() => {});
 
   const profile = await prisma.athleteProfile.findUnique({ where: { userId } });
-  if (!profile) throw new Error("Complete your athlete profile first.");
 
   const events = await prisma.event.findMany({
     where: { userId },
@@ -91,11 +90,13 @@ export async function generatePlan(
       endDate: planEnd,
       inputsSnapshot: {
         eventIds: events.map((e) => e.id),
-        profileSnapshot: {
-          ftp: profile.ftpWatts,
-          lthr: profile.lthrBpm,
-          experience: profile.experienceLevel,
-        },
+        profileSnapshot: profile
+          ? {
+              ftp: profile.ftpWatts,
+              lthr: profile.lthrBpm,
+              experience: profile.experienceLevel,
+            }
+          : null,
         provider: architect.provider,
       },
       reviewSummary: review.output.summary,

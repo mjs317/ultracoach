@@ -5,7 +5,7 @@ import type { AthleteProfile, Event as DbEvent } from "@prisma/client";
 import type { z } from "zod";
 
 export type ReviewerInput = {
-  profile: AthleteProfile;
+  profile: AthleteProfile | null;
   events: DbEvent[];
   generated: z.infer<typeof GeneratorOutputSchema>;
   providerOverride?: string | null;
@@ -38,12 +38,14 @@ Return JSON strictly matching the schema.`;
 
   const prompt = `Athlete:
 ${JSON.stringify(
-  {
-    experience: input.profile.experienceLevel,
-    ftp: input.profile.ftpWatts,
-    lthr: input.profile.lthrBpm,
-    constraints: input.profile.constraints,
-  },
+  input.profile
+    ? {
+        experience: input.profile.experienceLevel,
+        ftp: input.profile.ftpWatts,
+        lthr: input.profile.lthrBpm,
+        constraints: input.profile.constraints,
+      }
+    : { note: "No athlete profile on file; judge plan on general principles only." },
   null,
   2
 )}

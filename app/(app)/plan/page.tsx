@@ -26,20 +26,6 @@ export default async function PlanPage() {
     orderBy: { date: "asc" },
   });
 
-  const profile = await prisma.athleteProfile.findUnique({ where: { userId } });
-
-  if (!profile) {
-    return (
-      <div className="mx-auto max-w-xl text-center">
-        <h1 className="mb-2 text-2xl font-semibold">Profile required</h1>
-        <p className="mb-4 text-muted-foreground">
-          Fill in your athlete profile before generating a plan.
-        </p>
-        <Button asChild><Link href="/profile">Go to profile</Link></Button>
-      </div>
-    );
-  }
-
   if (events.length === 0) {
     return (
       <div className="mx-auto max-w-xl text-center">

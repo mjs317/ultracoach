@@ -5,7 +5,7 @@ import { buildAthleteContext, buildEventsContext } from "@/lib/ai/context";
 import type { AthleteProfile, Event as DbEvent } from "@prisma/client";
 
 export type ArchitectInput = {
-  profile: AthleteProfile;
+  profile: AthleteProfile | null;
   events: DbEvent[];
   planStart: Date;
   planEnd: Date;

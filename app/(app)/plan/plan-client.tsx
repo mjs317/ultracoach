@@ -152,7 +152,9 @@ export function PlanClient({ plan }: { plan: PlanData | null }) {
         <h1 className="mb-2 text-2xl font-semibold">No plan yet</h1>
         <p className="mb-4 text-muted-foreground">
           Click the button to build one. The AI coach will periodize your season, generate
-          structured workouts, and review the plan against live training-science sources.
+          structured workouts, and review the plan against training-science principles. You
+          can generate a plan from just your events — fill in your athlete profile later to
+          refine thresholds and weekly hours.
         </p>
         <Button onClick={regenerate} disabled={regenerating}>
           <Sparkles className="mr-2 h-4 w-4" /> {regenerating ? "Generating..." : "Generate plan"}

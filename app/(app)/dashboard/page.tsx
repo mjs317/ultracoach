@@ -40,7 +40,7 @@ export default async function DashboardPage() {
           <Button asChild variant="outline">
             <Link href="/events"><Plus className="mr-2 h-4 w-4" /> Add event</Link>
           </Button>
-          <Button asChild disabled={!profile || events.length === 0}>
+          <Button asChild disabled={events.length === 0}>
             <Link href="/plan">
               <Sparkles className="mr-2 h-4 w-4" />
               {plan ? "Open plan" : "Generate plan"}

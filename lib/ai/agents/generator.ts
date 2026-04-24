@@ -7,7 +7,7 @@ import type { z } from "zod";
 import { ArchitectOutputSchema } from "@/lib/ai/schemas";
 
 export type GeneratorInput = {
-  profile: AthleteProfile;
+  profile: AthleteProfile | null;
   events: DbEvent[];
   architectPlan: z.infer<typeof ArchitectOutputSchema>;
   providerOverride?: string | null;

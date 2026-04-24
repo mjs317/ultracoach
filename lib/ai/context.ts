@@ -1,6 +1,22 @@
 import type { AthleteProfile, Event as DbEvent } from "@prisma/client";
 
-export function buildAthleteContext(profile: AthleteProfile): string {
+export function buildAthleteContext(profile: AthleteProfile | null): string {
+  if (!profile) {
+    return `Athlete profile: not provided.
+The athlete has skipped the detailed profile for now, so no thresholds,
+equipment, weekly-hours pattern, or constraints are known. Build a
+reasonable default plan aimed at an intermediate multi-sport endurance
+athlete:
+- Assume ~7-10 total training hours/week, scaling up toward peak weeks.
+- Assume a standard week with one rest day (Monday by default) and
+  longer sessions on weekends.
+- Use RPE and heart-rate-zone targets (not power/FTP) since no
+  thresholds are known.
+- Keep interval targets conservative; avoid anything that would be
+  dangerous without known thresholds.
+- Call out in workout descriptions where the athlete should later refine
+  the plan by filling in FTP, LTHR, threshold pace, CSS, or constraints.`;
+  }
   const hours = profile.weeklyHoursPattern as Record<string, number> | null;
   const split = profile.sportSplit as Record<string, number> | null;
   const off = (profile.offDays as string[] | null) ?? [];
