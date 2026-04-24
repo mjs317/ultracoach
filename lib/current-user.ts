@@ -23,12 +23,27 @@ export type CurrentUser = {
 };
 
 async function upsertGuest(id: string): Promise<CurrentUser> {
-  return prisma.user.upsert({
+  const existing = await prisma.user.findUnique({
     where: { id },
-    update: {},
-    create: { id, email: `guest+${id}@ultracoach.local` },
     select: { id: true, email: true, name: true },
   });
+  if (existing) return existing;
+
+  try {
+    return await prisma.user.create({
+      data: { id, email: `guest+${id}@ultracoach.local` },
+      select: { id: true, email: true, name: true },
+    });
+  } catch (err) {
+    // Another concurrent request (e.g. a prefetch firing alongside a
+    // navigation) just created this row. Fall back to reading it.
+    const retry = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, name: true },
+    });
+    if (retry) return retry;
+    throw err;
+  }
 }
 
 export async function getCurrentUser(): Promise<CurrentUser> {
